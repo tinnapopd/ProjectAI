@@ -2,6 +2,70 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 
 
+class Move(BaseModel):
+    """
+    Model representing a strategic move made by a company.
+    Attributes:
+        move_id: Unique identifier for the move
+        move_name: Short descriptive name of the strategic action
+        description: Detailed explanation of the strategic action
+        stratgic_category: Category of the strategy (e.g., Pricing,
+            Product, Marketing, Acquisition, Partnership, Technology, Other)
+        expected_score: AI-evaluated score indicating expected outcome (optional)
+        score_explanation: Brief explanation of the score (optional)
+    """
+
+    move_id: str
+    move_name: str
+    description: str
+    stratgic_category: str
+    expected_score: Optional[float] = None
+    score_explanation: Optional[str] = None
+
+
+class StrategicMoves(BaseModel):
+    """Model representing a collection of strategic moves."""
+
+    strategic_moves: List[Move]
+
+
+class OpponentMoves(BaseModel):
+    """Model representing a collection of opponent moves."""
+
+    opponent_moves: List[Move]
+
+
+class ExecutedMove(BaseModel):
+    """
+    Model representing a move that has been executed by a player.
+
+    Attributes:
+        player_name: Name of the player/company executing the move
+        move_id: ID of the executed move
+        move_name: Name of the executed move
+    """
+
+    player_name: str
+    move_id: str
+    move_name: str
+
+
+class ScoringDetails(BaseModel):
+    """
+    Model representing the scoring details after evaluation.
+
+    Attributes:
+        heuristic_score: Numeric score based on business goal
+        score_explanation: Brief justification of the score
+        key_changes: List of key changes in the game state
+            that influenced the score
+    """
+
+    heuristic_score: float
+    score_explanation: str
+    key_changes: List[str]
+
+
 class CompanyProfile(BaseModel):
     """
     Model representing a company's profile in the game.
@@ -24,73 +88,34 @@ class CompanyProfile(BaseModel):
     others: Optional[Dict[str, Any]] = None
 
 
-class StrategyMove(BaseModel):
-    """
-    Model representing a strategic move made by a company.
-    Attributes:
-        move_id: Unique identifier for the move
-        move_name: Short descriptive name of the strategic action
-        description: Detailed explanation of the strategic action
-        stratgic_category: Category of the strategy
-        (e.g., Pricing, Product, Marketing, Acquisition,
-        Partnership, Technology, Other)
-        expected_score: AI-evaluated score indicating expected outcome (optional)
-        score_explanation: Brief explanation of the score (optional)
-    """
-
-    move_id: str
-    move_name: str
-    description: str
-    stratgic_category: str
-    expected_score: Optional[float] = None
-    score_explanation: Optional[str] = None
-
-
-class StrategicMoves(BaseModel):
-    """Model representing a collection of strategic moves."""
-
-    strategic_moves: List[StrategyMove]
-
-
-class PlayerState(BaseModel):
-    """
-    Model representing a player's state in the game.
-
-    Attributes:
-        player_id: Unique identifier for the player
-            (e.g., "OurCompany", "Competitor_A")
-        market_share: Player's market share (0.0 to 1.0)
-        revenue: Player's revenue in the current period
-        brand_sentiment: Brand perception score (0.0 to 1.0)
-        resources: Available resources/capital
-        additional_metrics: Optional dictionary for custom metrics
-    """
-
-    player_id: str
-    market_share: float
-    revenue: float
-    brand_sentiment: float
-    resources: float
-    additional_metrics: Optional[Dict[str, Any]] = None
-
-
 class GameState(BaseModel):
     """
-    Model representing the current state of the game simulation.
-
+    Model representing the state of the game/market.
     Attributes:
-        period: Current time period number
-            (quarter/month/year depending on TIME_PERIOD_UNIT)
-        market_size: Total market size/value
-        players: List of all player states in the game
-        market_conditions: Optional dictionary for market trends,
-            economic indicators, etc.
+        time_period: Current time period in the simulation
+        market_size: Size of the market in monetary terms
+        others: Optional dictionary for any additional market metrics
     """
 
-    period: int
+    time_period: int
     market_size: float
-    players: List[PlayerState]
-    market_conditions: Optional[Dict[str, Any]] = None
+    others: Optional[Dict[str, Any]] = None
+
+
+class EvaluationOutput(BaseModel):
+    """
+    Model representing the output of the evaluation.
+
+    Attributes:
+        moves_executed: List of moves executed by all players
+        game_state: Current state of the game after moves
+        scoring: Scoring details based on the evaluation
+    """
+
+    moves_executed: List[ExecutedMove]
+    game_state: GameState
+    players: List[CompanyProfile]
+    scoring: ScoringDetails
 
 
 class GameStartRequest(BaseModel):
@@ -110,59 +135,3 @@ class GameStartRequest(BaseModel):
     competitors: List[CompanyProfile]
     initial_game_state: GameState
     industry_context: Optional[str] = None
-
-
-class OpponentMoveSelection(BaseModel):
-    """
-    Model representing an opponent's move selection.
-
-    Attributes:
-        selected_move_id: ID of the chosen move from available options
-        reasoning: Brief explanation of why this move was chosen
-    """
-
-    selected_move_id: str
-    reasoning: str
-
-
-class EvaluationResult(BaseModel):
-    """
-    Model representing the evaluation result from the Evaluator Agent.
-
-    Attributes:
-        new_game_state: Updated game state after all moves are applied
-        heuristic_score: Numeric score based on business goal
-        score_explanation: Brief justification of the score
-    """
-
-    new_game_state: GameState
-    heuristic_score: float
-    score_explanation: str
-
-
-class UserActionRequest(BaseModel):
-    """
-    Model representing the user's action request.
-
-    Attributes:
-        user_id: Unique identifier for the user
-        business_goal: The user-defined business objective
-        company_profile: Profile of the user's company
-    """
-
-    user_id: str
-    business_goal: str
-    company_profile: CompanyProfile
-
-
-class ActionResponse(BaseModel):
-    """
-    Model representing the user's action response.
-
-    Attributes:
-        selected_move_id: ID of the move selected by the user
-        reasoning: Brief explanation of why this move was chosen
-    """
-
-    selected_move_id: str
-    reasoning: str
