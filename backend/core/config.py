@@ -34,12 +34,6 @@ class Settings(BaseSettings):
     DEFAULT_PLAYERS: int = 3
     TIME_PERIODS: int = 4
     TIME_PERIOD_UNIT: str = "quarter"
-    DEFAULT_ACTION_SET_SIZE: int = 4  # Number of possible moves per turn
-    MAX_SEARCH_DEPTH: int = 4  # Maximum allowed search depth
-
-    CACHE_GAME_STATES: bool = True
-    ENABLE_PRUNING: bool = True
-    GENERATE_SEARCH_TREE: bool = True
 
     # Google Cloud settings
     GOOGLE_GENAI_USE_VERTEXAI: bool = False
@@ -57,15 +51,6 @@ class Settings(BaseSettings):
         return [
             str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS
         ] + [self.FRONTEND_HOST]
-
-    @model_validator(mode="after")
-    def _game_settings_validation(self) -> Self:
-        if self.TIME_PERIODS > self.MAX_SEARCH_DEPTH:
-            raise ValueError(
-                f"TIME_PERIODS ({self.TIME_PERIODS}) "
-                f"cannot exceed MAX_SEARCH_DEPTH ({self.MAX_SEARCH_DEPTH})"
-            )
-        return self
 
     @model_validator(mode="after")
     def _google_credentials_validation(self) -> Self:
