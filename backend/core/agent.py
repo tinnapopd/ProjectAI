@@ -1,10 +1,10 @@
 from google.adk.agents import LlmAgent
 
-from .prompt import STRATEGY_PROMPT, OPPONENT_PROMPT, EVALUATOR_PROMPT
-from schemas import EvaluationOutput, StrategicMoves
+from .prompt import USER_PROMPT, OPPONENT_PROMPT, EVALUATOR_PROMPT
+from schemas import UserMoves, OpponentMoves, EvaluatorMoves
 
 
-def create_strategy_agent() -> LlmAgent:
+def create_user_agent() -> LlmAgent:
     return LlmAgent(
         name="strategy_agent",
         model="gemini-2.0-flash-exp",
@@ -12,8 +12,9 @@ def create_strategy_agent() -> LlmAgent:
             "Creative strategic consultant generating "
             "moves to maximize market share."
         ),
-        instruction=STRATEGY_PROMPT,
-        output_schema=StrategicMoves,
+        instruction=USER_PROMPT,
+        output_schema=UserMoves,
+        include_contents="none",
     )
 
 
@@ -23,7 +24,8 @@ def create_opponent_agent() -> LlmAgent:
         model="gemini-2.0-flash-exp",
         description="Rational competitor simulator maximizing own utility.",
         instruction=OPPONENT_PROMPT,
-        output_schema=StrategicMoves,
+        output_schema=OpponentMoves,
+        include_contents="none",
     )
 
 
@@ -33,11 +35,12 @@ def create_evaluator_agent() -> LlmAgent:
         model="gemini-2.0-flash-exp",
         description="Physics engine scoring outcomes based on business goals.",
         instruction=EVALUATOR_PROMPT,
-        output_schema=EvaluationOutput,
+        output_schema=EvaluatorMoves,
+        include_contents="none",
     )
 
 
 # Instantiate agents: singletons
-strategy_agent = create_strategy_agent()
+user_agent = create_user_agent()
 opponent_agent = create_opponent_agent()
 evaluator_agent = create_evaluator_agent()
