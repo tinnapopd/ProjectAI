@@ -32,8 +32,8 @@ class Settings(BaseSettings):
 
     # Simulation settings
     DEFAULT_PLAYERS: int = 3
-    DEFAULT_SEARCH_DEPTH: int = 4  # in time units (e.g., quarter, month, year)
-    TIME_PERIOD_UNIT: str = "quarter"  # e.g., "month", "quarter", "year"
+    TIME_PERIODS: int = 4
+    TIME_PERIOD_UNIT: str = "quarter"
     DEFAULT_ACTION_SET_SIZE: int = 4  # Number of possible moves per turn
     MAX_SEARCH_DEPTH: int = 4  # Maximum allowed search depth
 
@@ -60,9 +60,9 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _game_settings_validation(self) -> Self:
-        if self.DEFAULT_SEARCH_DEPTH > self.MAX_SEARCH_DEPTH:
+        if self.TIME_PERIODS > self.MAX_SEARCH_DEPTH:
             raise ValueError(
-                f"DEFAULT_SEARCH_DEPTH ({self.DEFAULT_SEARCH_DEPTH}) "
+                f"TIME_PERIODS ({self.TIME_PERIODS}) "
                 f"cannot exceed MAX_SEARCH_DEPTH ({self.MAX_SEARCH_DEPTH})"
             )
         return self
