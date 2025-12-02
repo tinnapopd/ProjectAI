@@ -1,4 +1,4 @@
-STRATEGY_PROMPT = """
+USER_PROMPT = """
 Role: Strategy Agent in a business wargame.
 Task: Analyze GameState and generate the specified number of strategic moves 
 to achieve the business goal.
