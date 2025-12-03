@@ -1,0 +1,15 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - ENVIRONMENT=production
+      - DEFAULT_PLAYERS=3
+      - TIME_PERIODS=4
+      - TIME_PERIOD_UNIT=quarter
+      - GOOGLE_GENAI_USE_VERTEXAI=false
+      - GOOGLE_API_KEY=AIzaSyAQ7lif91PciSr4ZKJoPsohyIg3CrA4Uts
+      - FRONTEND_HOST=http://localhost:5173
+    ports:
+      - 8000:8000
