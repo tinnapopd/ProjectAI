@@ -18,7 +18,7 @@ class StrategyAgentMoves(BaseModel):
 
 
 class OpponentAgentMoves(BaseModel):
-    selected_move: str
+    moves: List[str]
 
 
 class ScenarioScore(BaseModel):

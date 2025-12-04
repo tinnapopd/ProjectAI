@@ -108,7 +108,7 @@ class MaxNController:
         player = self.player_profiles[player_index]
 
         prompt = f"""
-        Given the current GameState (JSON):
+        Current GameState (JSON):
         {state.model_dump_json(indent=2)}
 
         Business Goal (of main player - use this to understand the competitive context):
@@ -117,31 +117,22 @@ class MaxNController:
         Your Company Profile:
         {player.model_dump_json(indent=2)}
         
-        Generate exactly {num_moves} distinct strategic moves this company might take.
-        Consider both aggressive and defensive options.
+        Number of Moves to Generate: {num_moves}
+        
+        Generate exactly {num_moves} DIFFERENT strategic moves for {player.name}.
+        Each move must represent a distinct strategic direction.
         """
 
         response = self.opponent.call_agent(prompt=prompt)
 
+        moves: List[str] = []
         if response and isinstance(response, dict):
-            if "selected_move" in response:
-                base_move = response["selected_move"]
-                # Create variations
-                moves = [base_move]
-                if num_moves > 1:
-                    moves.append(f"Aggressive variant: {base_move}")
-                if num_moves > 2:
-                    moves.append(f"Defensive variant: Focus on core business")
-            elif "moves" in response:
-                moves = response["moves"][:num_moves]
-            else:
-                moves = [f"Strategy {i + 1}" for i in range(num_moves)]
-        else:
-            moves = [f"Strategy {i + 1}" for i in range(num_moves)]
+            if "moves" in response and isinstance(response["moves"], list):
+                moves = [str(m) for m in response["moves"][:num_moves]]
 
-        # Ensure exactly num_moves
+        # Fallback if LLM didn't return enough moves
         while len(moves) < num_moves:
-            moves.append(f"Alternative {len(moves) + 1}")
+            moves.append(f"{player.name} Strategy {len(moves) + 1}")
 
         return moves[:num_moves]
 
@@ -181,21 +172,21 @@ class MaxNController:
             scenarios_text.append(f"  {scenario_id}: [{moves_desc}]")
 
         prompt = f"""
-Current GameState:
-{state.model_dump_json(indent=2)}
+        Current GameState:
+        {state.model_dump_json(indent=2)}
 
-Business Goal (for Player 0 - {self.player_profiles[0].name}):
-{self.business_goal}
+        Business Goal (for Player 0 - {self.player_profiles[0].name}):
+        {self.business_goal}
 
-Player Profiles:
-{json.dumps([p.model_dump() for p in self.player_profiles], indent=2)}
+        Player Profiles:
+        {json.dumps([p.model_dump() for p in self.player_profiles], indent=2)}
 
-Scenarios to evaluate (each shows all players' moves):
-{chr(10).join(scenarios_text)}
+        Scenarios to evaluate (each shows all players' moves):
+        {chr(10).join(scenarios_text)}
 
-Evaluate each scenario: How well does this combination of moves achieve Player 0's business goal?
-Return a score (0.0 to 1.0) for EACH scenario.
-"""
+        Evaluate each scenario: How well does this combination of moves achieve Player 0's business goal?
+        Return a score (0.0 to 1.0) for EACH scenario.
+        """
 
         response = self.evaluator.call_agent(prompt=prompt)
 

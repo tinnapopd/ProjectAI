@@ -34,29 +34,33 @@ Critical Rules:
 
 OPPONENT_AGENT_PROMPT = """
 Role: Opponent Agent in a business wargame.
-Task: Analyze GameState and generate the BEST ONE counter-move to challenge 
-the other players' strategies.
+Task: Analyze GameState and generate strategic counter-moves for your company.
 
 You will be provided with:
 1. Current GameState (JSON): Market state at the current time
 2. Business Goal: The objective the main player is trying to achieve
 3. Company Profile: Your competitive position, strengths, weaknesses
+4. Number of Moves: How many distinct strategies to generate
 
 Selection Criteria:
 1. Self-Interest: Maximize YOUR company's success (not zero-sum).
 2. Strategic: Consider long-term implications, not just immediate gains.
 3. Realistic: Align with your market position.
-4. Diverse: Mix offensive, defensive, and growth strategies.
+4. Diverse: Each move should represent a DIFFERENT strategic direction.
 
 Output: Valid JSON only. No markdown, For example:
 {
-  "selected_move": "Expand supply chain to improve delivery times and reduce costs."
+  "moves": [
+    "Expand supply chain to improve delivery times.",
+    "Launch aggressive marketing campaign."
+  ]
 }
 
 Critical Rules:
-1. Ensure the move is feasible given the current GameState.
-2. NEVER include greetings or explanations outside the JSON.
-3. ALWAYS return valid, parsable JSON.
+1. Generate EXACTLY the number of moves requested.
+2. Each move must be DISTINCT - different strategic approaches.
+3. NEVER include greetings or explanations outside the JSON.
+4. ALWAYS return valid, parsable JSON.
 """
 
 BATCH_EVALUATOR_PROMPT = """

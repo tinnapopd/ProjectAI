@@ -32,8 +32,7 @@ class Settings(BaseSettings):
 
     # Simulation settings
     DEFAULT_PLAYERS: int = 3
-    MOVES_PER_PLAYER: int = 2  # Reduced from 3 to minimize tree size
-    USE_LLM_EVALUATION: bool = False  # Use heuristic eval for speed
+    MOVES_PER_PLAYER: int = 2
     TIME_PERIODS: int = 4
     TIME_PERIOD_UNIT: str = "quarter"
 
