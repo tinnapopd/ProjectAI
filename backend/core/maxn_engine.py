@@ -8,6 +8,9 @@ from google.genai import types
 
 from schemas import GameState, CompanyProfile, TreeNode
 
+# Shared session service instance to maintain sessions across all agents
+_shared_session_service = InMemorySessionService()
+
 
 class Agent:
     def __init__(
@@ -15,21 +18,27 @@ class Agent:
         user_id: str,
         session_id: str,
         llm_agent: LlmAgent,
+        session_service: Optional[InMemorySessionService] = None,
     ) -> None:
         self.user_id = user_id
         self.session_id = session_id
         self.llm_agent = llm_agent
-        self.session_service = InMemorySessionService()
-        self.session = self.session_service.create_session(
-            app_name=self.llm_agent.name,
-            user_id=user_id,
-            session_id=session_id,
-        )
+
+        self.session_service = session_service or _shared_session_service
+        self.session = None
         self.runner = Runner(
             agent=self.llm_agent,
             app_name=self.llm_agent.name,
             session_service=self.session_service,
         )
+
+    async def initialize(self) -> "Agent":
+        self.session = await self.session_service.create_session(
+            app_name=self.llm_agent.name,
+            user_id=self.user_id,
+            session_id=self.session_id,
+        )
+        return self
 
     def _deserialize_response(self, response: str) -> Optional[Any]:
         try:
@@ -112,7 +121,10 @@ class MaxNController:
             {", ".join([p.model_dump_json(indent=2) for p in self.player_profiles])}
             """
             data = self.evaluator.call_agent(prompt=eval_prompt)
-            score = data.get("heuristic_score", 0.5)  # type: ignore
+            if data and isinstance(data, dict):
+                score = data.get("heuristic_score", 0.5)
+            else:
+                score = 0.5  # Default score if evaluation fails
 
             current_node.score = score
             return score, my_node_id
@@ -130,8 +142,10 @@ class MaxNController:
         {current_player.model_dump_json(indent=2)}
         """
 
-        opp_move = self.opponent.call_agent(prompt=opp_prompt)
-        if not opp_move:
+        opp_response = self.opponent.call_agent(prompt=opp_prompt)
+        if opp_response and isinstance(opp_response, dict):
+            opp_move = opp_response.get("selected_move", "Observe and wait")
+        else:
             opp_move = "Observe and wait"
 
         new_path = current_path + [opp_move]

@@ -24,7 +24,6 @@ class OpponentAgentMoves(BaseModel):
 class EvaluatorAgentFeedback(BaseModel):
     heuristic_score: float
     description: str
-    new_metrics: Dict[str, Any] = Field(default_factory=dict)
 
 
 class GameState(BaseModel):

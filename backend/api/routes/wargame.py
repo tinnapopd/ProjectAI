@@ -20,7 +20,7 @@ async def run_wargame(request: WargameRequest):
         )
         if not action_set:
             # Generate action set using strategy agent
-            strategy = get_strategy_agent(request.user_id, session_id)
+            strategy = await get_strategy_agent(request.user_id, session_id)
             company_profile = next(
                 (
                     profile
@@ -53,7 +53,7 @@ async def run_wargame(request: WargameRequest):
                 )
 
         # Create MaxN controller
-        controller = get_maxn_controller(
+        controller = await get_maxn_controller(
             user_id=request.user_id,
             session_id=session_id,
             business_goal=request.business_goal,
