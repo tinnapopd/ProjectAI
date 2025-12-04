@@ -1,0 +1,252 @@
+.tree-container {
+  width: 100%;
+  flex: 1;
+  min-height: 500px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.03),
+    0 4px 20px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+  margin-top: 0;
+  border: 1px solid #e2e8f0;
+}
+
+/* Legend */
+.tree-legend {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 14px 18px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  min-width: 140px;
+}
+
+.legend-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.legend-item:last-child {
+  margin-bottom: 0;
+}
+
+.legend-item.best {
+  color: #059669;
+  font-weight: 600;
+}
+
+.legend-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.legend-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 14px 0;
+}
+
+/* Instructions */
+.tree-instructions {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+  font-size: 11px;
+  color: #64748b;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.no-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 500;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.no-data::before {
+  content: "🌳";
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+/* Tree links/paths */
+.rd3t-tree-container {
+  width: 100%;
+  height: 100%;
+}
+
+.rd3t-link,
+.link-normal {
+  stroke: #94a3b8;
+  stroke-width: 2;
+  fill: none;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.link-best {
+  stroke: #10b981;
+  stroke-width: 3;
+  fill: none;
+  opacity: 0.8;
+}
+
+.rd3t-link:hover,
+.link-normal:hover {
+  stroke: #6366f1;
+  opacity: 0.8;
+  stroke-width: 2.5;
+}
+
+.rd3t-node {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rd3t-node:hover {
+  filter: brightness(1.1);
+}
+
+/* Tooltip */
+.tree-tooltip {
+  position: absolute;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  pointer-events: none;
+  max-width: 320px;
+  min-width: 180px;
+  animation: tooltipFade 0.15s ease-out;
+}
+
+@keyframes tooltipFade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-header {
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tooltip-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: #3b82f6;
+}
+
+.tooltip-badge.best {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.tooltip-badge.root {
+  background: #6366f1;
+}
+
+.tooltip-badge.leaf {
+  background: #10b981;
+}
+
+.tooltip-label {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #f1f5f9;
+  word-wrap: break-word;
+}
+
+.tooltip-score {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.tooltip-score strong {
+  color: #10b981;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .tree-container {
+    min-height: 400px;
+  }
+
+  .tree-legend {
+    top: 8px;
+    left: 8px;
+    padding: 10px 14px;
+  }
+
+  .legend-title {
+    font-size: 10px;
+  }
+
+  .legend-item {
+    font-size: 11px;
+  }
+
+  .legend-box {
+    width: 14px;
+    height: 14px;
+  }
+
+  .tree-instructions {
+    font-size: 10px;
+    padding: 6px 12px;
+  }
+}

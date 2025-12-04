@@ -1,5 +1,5 @@
 from typing import List
-from core.agent import strategy_agent, opponent_agent, evaluator_agent
+from core.agent import strategy_agent, opponent_agent, batch_evaluator_agent
 from core.maxn_engine import Agent, MaxNController
 from schemas import CompanyProfile
 
@@ -24,11 +24,12 @@ async def get_opponent_agent(user_id: str, session_id: str) -> Agent:
     return agent
 
 
-async def get_evaluator_agent(user_id: str, session_id: str) -> Agent:
+async def get_batch_evaluator_agent(user_id: str, session_id: str) -> Agent:
+    """Get batch evaluator agent for evaluating all scenarios at once."""
     agent = Agent(
         user_id=user_id,
-        session_id=f"{session_id}_evaluator",
-        llm_agent=evaluator_agent,
+        session_id=f"{session_id}_batch_evaluator",
+        llm_agent=batch_evaluator_agent,
     )
     await agent.initialize()
     return agent
@@ -41,7 +42,7 @@ async def get_maxn_controller(
     player_profiles: List[CompanyProfile],
 ) -> MaxNController:
     # Initialize agents
-    evaluator = await get_evaluator_agent(user_id, session_id)
+    evaluator = await get_batch_evaluator_agent(user_id, session_id)
     opponent = await get_opponent_agent(user_id, session_id)
 
     return MaxNController(

@@ -3,10 +3,51 @@ import uuid
 
 from api.deps import get_maxn_controller, get_strategy_agent
 from core.config import settings
-from schemas import WargameRequest, WargameResponse
+from schemas import WargameRequest, WargameResponse, CompanyProfile
 
 
 router = APIRouter(prefix="/wargame", tags=["Business Wargame"])
+
+
+def generate_opponent_profiles(
+    user_company: CompanyProfile,
+    num_opponents: int,
+    business_goal: str,
+) -> list[CompanyProfile]:
+    """Generate synthetic opponent profiles based on the user's company."""
+    opponent_names = [
+        "Alpha Dynamics",
+        "Beta Industries",
+        "Gamma Corp",
+        "Delta Solutions",
+        "Epsilon Tech",
+        "Zeta Global",
+    ]
+
+    opponent_goals = [
+        "Maximize market share through aggressive pricing",
+        "Focus on premium segment and brand differentiation",
+        "Expand through strategic partnerships and acquisitions",
+        "Innovate with cutting-edge technology and R&D",
+        "Optimize operational efficiency and cost leadership",
+        "Build customer loyalty through superior service",
+    ]
+
+    opponents = []
+    for i in range(num_opponents):
+        opponent = CompanyProfile(
+            id=f"opponent_{i + 1}",
+            name=opponent_names[i % len(opponent_names)],
+            business_goal=opponent_goals[i % len(opponent_goals)],
+            about_us=f"A competitive company in the same market as {user_company.name}.",
+            customers=user_company.customers[:2]
+            if user_company.customers
+            else ["General consumers"],
+            isUserCompany=False,
+        )
+        opponents.append(opponent)
+
+    return opponents
 
 
 @router.post("/run", response_model=WargameResponse)
@@ -18,17 +59,54 @@ async def run_wargame(request: WargameRequest):
         time_period_unit = (
             request.game_state.time_period_unit or settings.TIME_PERIOD_UNIT
         )
+
+        # Find user company profile
+        user_company = next(
+            (
+                profile
+                for profile in request.player_profiles
+                if profile.isUserCompany
+            ),
+            None,
+        )
+
+        if not user_company:
+            # Create a default user company if none provided
+            user_company = CompanyProfile(
+                id="user_company",
+                name="Your Company",
+                business_goal=request.business_goal,
+                about_us="",
+                customers=[],
+                isUserCompany=True,
+            )
+
+        # Auto-generate opponent profiles based on DEFAULT_PLAYERS
+        # Total players = user + opponents, so opponents = DEFAULT_PLAYERS - 1
+        num_opponents = settings.DEFAULT_PLAYERS - 1
+
+        # Check if opponents already provided in request
+        existing_opponents = [
+            p for p in request.player_profiles if not p.isUserCompany
+        ]
+
+        if len(existing_opponents) < num_opponents:
+            # Generate missing opponents
+            additional_opponents = generate_opponent_profiles(
+                user_company=user_company,
+                num_opponents=num_opponents - len(existing_opponents),
+                business_goal=request.business_goal,
+            )
+            all_opponents = existing_opponents + additional_opponents
+        else:
+            all_opponents = existing_opponents[:num_opponents]
+
+        # Combine user company with opponents
+        player_profiles = [user_company] + all_opponents
+
         if not action_set:
             # Generate action set using strategy agent
             strategy = await get_strategy_agent(request.user_id, session_id)
-            company_profile = next(
-                (
-                    profile
-                    for profile in request.player_profiles
-                    if profile.isUserCompany
-                ),
-                None,
-            )
             prompt = f"""
             Given the current GameState (JSON):
             {request.game_state.model_dump_json(indent=2)}
@@ -37,7 +115,7 @@ async def run_wargame(request: WargameRequest):
             {request.business_goal}
 
             Company Profile:
-            {company_profile.model_dump_json(indent=2) if company_profile else "N/A"}
+            {user_company.model_dump_json(indent=2)}
             
             Number of Time Periods: {time_periods} {time_period_unit}(s)
             """
@@ -52,12 +130,12 @@ async def run_wargame(request: WargameRequest):
                     + "Please provide action_set in request.",
                 )
 
-        # Create MaxN controller
+        # Create MaxN controller with all player profiles
         controller = await get_maxn_controller(
             user_id=request.user_id,
             session_id=session_id,
             business_goal=request.business_goal,
-            player_profiles=request.player_profiles,
+            player_profiles=player_profiles,
         )
 
         # Run the search

@@ -21,9 +21,13 @@ class OpponentAgentMoves(BaseModel):
     selected_move: str
 
 
-class EvaluatorAgentFeedback(BaseModel):
-    heuristic_score: float
-    description: str
+class ScenarioScore(BaseModel):
+    scenario_id: str
+    score: float
+
+
+class BatchEvaluationResult(BaseModel):
+    scores: List[ScenarioScore]
 
 
 class GameState(BaseModel):

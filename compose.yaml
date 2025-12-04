@@ -9,7 +9,18 @@ services:
       - TIME_PERIODS=4
       - TIME_PERIOD_UNIT=quarter
       - GOOGLE_GENAI_USE_VERTEXAI=false
-      - GOOGLE_API_KEY=AIzaSyAQ7lif91PciSr4ZKJoPsohyIg3CrA4Uts
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - FRONTEND_HOST=http://localhost:5173
     ports:
       - 8000:8000
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - 5173:5173
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://localhost:8000

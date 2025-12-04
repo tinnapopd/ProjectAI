@@ -32,6 +32,8 @@ class Settings(BaseSettings):
 
     # Simulation settings
     DEFAULT_PLAYERS: int = 3
+    MOVES_PER_PLAYER: int = 2  # Reduced from 3 to minimize tree size
+    USE_LLM_EVALUATION: bool = False  # Use heuristic eval for speed
     TIME_PERIODS: int = 4
     TIME_PERIOD_UNIT: str = "quarter"
 
@@ -40,7 +42,7 @@ class Settings(BaseSettings):
     GOOGLE_API_KEY: str = ""
 
     # Frontend and backend settings
-    FRONTEND_HOST: str = "http://localhost:3000"
+    FRONTEND_HOST: str = "http://localhost:5173"
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []
