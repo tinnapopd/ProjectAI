@@ -2,7 +2,8 @@
 
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// Use VITE_API_URL if provided, otherwise use relative path for nginx proxy
+const API_URL = import.meta.env.VITE_API_URL ?? "";
 const API_BASE = `${API_URL}/api/v1`;
 
 // Create axios instance with default config
