@@ -2,7 +2,7 @@
 
 set -e
 
-VERSION="v1.0"
+VERSION="v1.4"
 
 docker login
 
