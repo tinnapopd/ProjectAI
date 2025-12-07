@@ -5,10 +5,15 @@ import "./DecisionTree.css";
 // Player colors for visual distinction - based on who made the move
 const PLAYER_COLORS = {
   root: { bg: "#6366f1", border: "#4f46e5", text: "#fff" },
-  you: { bg: "#3b82f6", border: "#2563eb", text: "#fff", name: "You" },  // Blue for your moves
-  opponent: { bg: "#ef4444", border: "#dc2626", text: "#fff", name: "Opponent" },  // Red for opponent
+  you: { bg: "#3b82f6", border: "#2563eb", text: "#fff", name: "You" }, // Blue for your moves
+  opponent: {
+    bg: "#ef4444",
+    border: "#dc2626",
+    text: "#fff",
+    name: "Opponent",
+  }, // Red for opponent
   leaf: { bg: "#10b981", border: "#059669", text: "#fff" },
-  best: { bg: "#22c55e", border: "#16a34a", text: "#fff" },  // Bright green for best
+  best: { bg: "#22c55e", border: "#16a34a", text: "#fff" }, // Bright green for best
 };
 
 // Time period colors for visual grouping
@@ -148,8 +153,15 @@ const DecisionTree = ({ treeData, bestMove, timePeriods, timePeriodUnit }) => {
 
     // Determine colors based on who made the move (playerIndex)
     // Debug: log playerIndex to see what we're getting
-    console.log('Node:', nodeDatum.name, 'playerIndex:', playerIndex, 'type:', typeof playerIndex);
-    
+    console.log(
+      "Node:",
+      nodeDatum.name,
+      "playerIndex:",
+      playerIndex,
+      "type:",
+      typeof playerIndex
+    );
+
     let colors;
     if (isBestMove) {
       colors = PLAYER_COLORS.best;
@@ -355,20 +367,36 @@ const DecisionTree = ({ treeData, bestMove, timePeriods, timePeriodUnit }) => {
                 <>
                   {/* Player badge - who made this move */}
                   {tooltip.content.attributes?.playerIndex === 0 ? (
-                    <span className="tooltip-badge" style={{ background: PLAYER_COLORS.you.bg }}>
+                    <span
+                      className="tooltip-badge"
+                      style={{ background: PLAYER_COLORS.you.bg }}
+                    >
                       🔵 Your Move
                     </span>
                   ) : (
-                    <span className="tooltip-badge" style={{ background: PLAYER_COLORS.opponent.bg }}>
+                    <span
+                      className="tooltip-badge"
+                      style={{ background: PLAYER_COLORS.opponent.bg }}
+                    >
                       🔴 Opponent Move
                     </span>
                   )}
                   {/* MAX/MIN indicator */}
                   {tooltip.content.attributes?.isMaxNode && (
-                    <span className="tooltip-badge" style={{ background: "#666" }}>▲ MAX</span>
+                    <span
+                      className="tooltip-badge"
+                      style={{ background: "#666" }}
+                    >
+                      ▲ MAX
+                    </span>
                   )}
                   {tooltip.content.attributes?.isMinNode && (
-                    <span className="tooltip-badge" style={{ background: "#666" }}>▼ MIN</span>
+                    <span
+                      className="tooltip-badge"
+                      style={{ background: "#666" }}
+                    >
+                      ▼ MIN
+                    </span>
                   )}
                 </>
               )}
