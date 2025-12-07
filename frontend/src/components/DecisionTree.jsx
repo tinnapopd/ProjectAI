@@ -2,9 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import Tree from "react-d3-tree";
 import "./DecisionTree.css";
 
-// Player colors for visual distinction
+// Player colors for visual distinction - enhanced for Minimax
 const PLAYER_COLORS = {
   root: { bg: "#6366f1", border: "#4f46e5", text: "#fff" },
+  max: { bg: "#3b82f6", border: "#2563eb", text: "#fff", name: "MAX (You)" },
+  min: {
+    bg: "#ef4444",
+    border: "#dc2626",
+    text: "#fff",
+    name: "MIN (Opponent)",
+  },
   0: { bg: "#3b82f6", border: "#2563eb", text: "#fff", name: "You" },
   1: { bg: "#f59e0b", border: "#d97706", text: "#fff", name: "Opp 1" },
   2: { bg: "#ef4444", border: "#dc2626", text: "#fff", name: "Opp 2" },
@@ -13,7 +20,17 @@ const PLAYER_COLORS = {
   best: { bg: "#10b981", border: "#047857", text: "#fff" },
 };
 
-const DecisionTree = ({ treeData, bestMove }) => {
+// Time period colors for visual grouping
+const PERIOD_COLORS = [
+  "#6366f1", // Purple
+  "#3b82f6", // Blue
+  "#14b8a6", // Teal
+  "#f59e0b", // Amber
+  "#ef4444", // Red
+  "#8b5cf6", // Violet
+];
+
+const DecisionTree = ({ treeData, bestMove, timePeriods, timePeriodUnit }) => {
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [tooltip, setTooltip] = useState({
@@ -55,9 +72,13 @@ const DecisionTree = ({ treeData, bestMove }) => {
     const node = nodesMap[nodeId];
     if (!node) return null;
 
-    const isLeaf = !node.children || node.children.length === 0;
-    const isRoot = node.parent_id === null;
+    const isLeaf = node.is_leaf || !node.children || node.children.length === 0;
+    const isRoot = node.is_root || node.parent_id === null;
     const isBestMove = node.label === bestMove && node.player_index === 0;
+    // Explicitly check for true/false, not null/undefined
+    const isMaxNode = node.is_max_node === true;
+    const isMinNode = node.is_max_node === false && node.is_max_node !== null;
+    const timePeriod = node.time_period;
 
     // Truncate long labels for display
     const truncateLabel = (label, maxLen = 20) => {
@@ -74,6 +95,9 @@ const DecisionTree = ({ treeData, bestMove }) => {
         isLeaf,
         isRoot,
         isBestMove,
+        isMaxNode,
+        isMinNode,
+        timePeriod,
         depth,
       },
       children: [],
@@ -120,10 +144,18 @@ const DecisionTree = ({ treeData, bestMove }) => {
 
   // Custom node rendering
   const renderCustomNode = ({ nodeDatum, toggleNode }) => {
-    const { isLeaf, isRoot, isBestMove, playerIndex, score } =
-      nodeDatum.attributes || {};
+    const {
+      isLeaf,
+      isRoot,
+      isBestMove,
+      playerIndex,
+      score,
+      isMaxNode,
+      isMinNode,
+      timePeriod,
+    } = nodeDatum.attributes || {};
 
-    // Determine colors
+    // Determine colors based on Minimax node type
     let colors;
     if (isBestMove) {
       colors = PLAYER_COLORS.best;
@@ -131,12 +163,24 @@ const DecisionTree = ({ treeData, bestMove }) => {
       colors = PLAYER_COLORS.root;
     } else if (isLeaf) {
       colors = PLAYER_COLORS.leaf;
+    } else if (isMaxNode) {
+      // MAX node - your turn (blue)
+      colors = PLAYER_COLORS.max;
+    } else if (isMinNode) {
+      // MIN node - opponent turn (use opponent color)
+      colors = PLAYER_COLORS[playerIndex] || PLAYER_COLORS.min;
     } else {
       colors = PLAYER_COLORS[playerIndex] || PLAYER_COLORS[0];
     }
 
-    // Compact node sizes - no text needed
-    const nodeSize = isLeaf ? 24 : 36;
+    // Get period color for border accent
+    const periodColor =
+      timePeriod !== null && timePeriod >= 0
+        ? PERIOD_COLORS[timePeriod % PERIOD_COLORS.length]
+        : null;
+
+    // Compact node sizes
+    const nodeSize = isLeaf ? 24 : isRoot ? 40 : 36;
 
     return (
       <g
@@ -145,6 +189,18 @@ const DecisionTree = ({ treeData, bestMove }) => {
         onMouseLeave={hideTooltip}
         style={{ cursor: "pointer" }}
       >
+        {/* Time period indicator ring */}
+        {periodColor && !isRoot && (
+          <circle
+            r={nodeSize / 2 + 4}
+            fill="none"
+            stroke={periodColor}
+            strokeWidth={2}
+            strokeDasharray={isMaxNode ? "none" : "4,2"}
+            opacity={0.6}
+          />
+        )}
+
         {/* Glow effect for best move */}
         {isBestMove && (
           <circle
@@ -167,7 +223,22 @@ const DecisionTree = ({ treeData, bestMove }) => {
           }}
         />
 
-        {/* Inner circle for visual depth - no text */}
+        {/* MAX/MIN indicator */}
+        {!isRoot && !isLeaf && (
+          <text
+            x={0}
+            y={4}
+            textAnchor="middle"
+            fontSize="10"
+            fill={colors.text}
+            fontWeight="bold"
+            style={{ pointerEvents: "none" }}
+          >
+            {isMaxNode ? "▲" : "▼"}
+          </text>
+        )}
+
+        {/* Inner circle for visual depth */}
         <circle
           r={nodeSize / 2 - 4}
           fill="none"
@@ -202,7 +273,7 @@ const DecisionTree = ({ treeData, bestMove }) => {
     <div className="tree-container" ref={treeContainerRef}>
       {/* Legend */}
       <div className="tree-legend">
-        <div className="legend-title">Legend</div>
+        <div className="legend-title">Minimax Legend</div>
 
         {/* Best Move - highlighted at top */}
         <div className="legend-item best">
@@ -218,7 +289,7 @@ const DecisionTree = ({ treeData, bestMove }) => {
 
         <div className="legend-divider"></div>
 
-        {/* Player types */}
+        {/* Minimax node types */}
         <div className="legend-item">
           <span
             className="legend-box"
@@ -229,22 +300,17 @@ const DecisionTree = ({ treeData, bestMove }) => {
         <div className="legend-item">
           <span
             className="legend-box"
-            style={{ background: PLAYER_COLORS[0].bg }}
+            style={{ background: PLAYER_COLORS.max.bg }}
           ></span>
-          <span>Your Moves</span>
+          <span>▲ MAX (Your Turn)</span>
         </div>
-        {[...players]
-          .filter((p) => p > 0)
-          .sort()
-          .map((p) => (
-            <div key={p} className="legend-item">
-              <span
-                className="legend-box"
-                style={{ background: PLAYER_COLORS[p]?.bg || "#888" }}
-              ></span>
-              <span>Opponent {p}</span>
-            </div>
-          ))}
+        <div className="legend-item">
+          <span
+            className="legend-box"
+            style={{ background: PLAYER_COLORS.min.bg }}
+          ></span>
+          <span>▼ MIN (Opponent)</span>
+        </div>
         <div className="legend-item">
           <span
             className="legend-box"
@@ -252,11 +318,40 @@ const DecisionTree = ({ treeData, bestMove }) => {
           ></span>
           <span>Outcomes</span>
         </div>
+
+        {/* Time periods legend */}
+        {timePeriods > 0 && (
+          <>
+            <div className="legend-divider"></div>
+            <div className="legend-subtitle">Time Periods</div>
+            {Array.from({ length: Math.min(timePeriods, 6) }, (_, i) => (
+              <div key={i} className="legend-item">
+                <span
+                  className="legend-box legend-ring"
+                  style={{
+                    borderColor: PERIOD_COLORS[i % PERIOD_COLORS.length],
+                  }}
+                ></span>
+                <span>
+                  {timePeriodUnit
+                    ? `${
+                        timePeriodUnit.charAt(0).toUpperCase() +
+                        timePeriodUnit.slice(1)
+                      } ${i + 1}`
+                    : `Period ${i + 1}`}
+                </span>
+              </div>
+            ))}
+          </>
+        )}
       </div>
 
       {/* Instructions */}
       <div className="tree-instructions">
-        <span>🖱️ Drag to pan • Scroll to zoom • Hover for details</span>
+        <span>
+          🖱️ Drag to pan • Scroll to zoom • Hover for details • {timePeriods}{" "}
+          {timePeriodUnit}(s) shown
+        </span>
       </div>
 
       {/* Tooltip */}
@@ -269,50 +364,79 @@ const DecisionTree = ({ treeData, bestMove }) => {
           }}
         >
           <div className="tooltip-header">
-            {/* Player type badge */}
+            {/* Node type badge */}
             {tooltip.content.attributes?.isRoot && (
               <span className="tooltip-badge root">Root</span>
             )}
             {tooltip.content.attributes?.isLeaf && (
-              <span className="tooltip-badge leaf">Outcome</span>
+              <span className="tooltip-badge leaf">Final Outcome</span>
             )}
             {!tooltip.content.attributes?.isRoot &&
-              !tooltip.content.attributes?.isLeaf &&
-              tooltip.content.attributes?.playerIndex !== null && (
-                <span
-                  className="tooltip-badge"
-                  style={{
-                    background:
-                      PLAYER_COLORS[tooltip.content.attributes.playerIndex]?.bg,
-                  }}
-                >
-                  {tooltip.content.attributes.playerIndex === 0
-                    ? "Your Move"
-                    : `Opponent ${tooltip.content.attributes.playerIndex}`}
-                </span>
+              !tooltip.content.attributes?.isLeaf && (
+                <>
+                  {tooltip.content.attributes?.isMaxNode && (
+                    <span className="tooltip-badge max">▲ MAX (Your Turn)</span>
+                  )}
+                  {tooltip.content.attributes?.isMinNode && (
+                    <span
+                      className="tooltip-badge"
+                      style={{
+                        background:
+                          PLAYER_COLORS[tooltip.content.attributes.playerIndex]
+                            ?.bg || PLAYER_COLORS.min.bg,
+                      }}
+                    >
+                      ▼ MIN (Opponent {tooltip.content.attributes.playerIndex})
+                    </span>
+                  )}
+                </>
               )}
 
-            {/* Best Move badge - separate line */}
+            {/* Best Move badge */}
             {tooltip.content.attributes?.isBestMove && (
               <span className="tooltip-badge best">⭐ Best Move</span>
             )}
           </div>
-          {/* Show appropriate label based on node type */}
+
+          {/* Time period indicator */}
+          {tooltip.content.attributes?.timePeriod !== null &&
+            tooltip.content.attributes?.timePeriod !== undefined &&
+            tooltip.content.attributes?.timePeriod >= 0 && (
+              <div
+                className="tooltip-period"
+                style={{
+                  borderLeft: `3px solid ${
+                    PERIOD_COLORS[
+                      tooltip.content.attributes.timePeriod %
+                        PERIOD_COLORS.length
+                    ]
+                  }`,
+                }}
+              >
+                {timePeriodUnit
+                  ? `${
+                      timePeriodUnit.charAt(0).toUpperCase() +
+                      timePeriodUnit.slice(1)
+                    } ${tooltip.content.attributes.timePeriod + 1}`
+                  : `Period ${tooltip.content.attributes.timePeriod + 1}`}
+              </div>
+            )}
+
+          {/* Show label */}
           {tooltip.content.attributes?.isRoot ? (
             <div className="tooltip-label">
-              <span style={{ opacity: 0.7, fontSize: "11px" }}>
-                Time Period:
-              </span>
+              <span style={{ opacity: 0.7, fontSize: "11px" }}>Game Tree:</span>
               <br />
               {tooltip.content.fullName}
             </div>
           ) : (
             <div className="tooltip-label">{tooltip.content.fullName}</div>
           )}
+
           {tooltip.content.attributes?.score !== null &&
             tooltip.content.attributes?.score !== undefined && (
               <div className="tooltip-score">
-                Score:{" "}
+                Minimax Score:{" "}
                 <strong>{tooltip.content.attributes.score.toFixed(3)}</strong>
               </div>
             )}

@@ -44,6 +44,12 @@ class TreeNode(BaseModel):
     player_index: Optional[int] = None
     parent_id: Optional[str] = None
     children: List[str] = Field(default_factory=list)
+    time_period: Optional[int] = None  # Which time period this node belongs to
+    is_max_node: Optional[bool] = (
+        None  # True for MAX (your turn), False for MIN (opponent)
+    )
+    is_leaf: bool = False  # Terminal node
+    is_root: bool = False  # Root node
 
 
 class WargameRequest(BaseModel):

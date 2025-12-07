@@ -31,9 +31,11 @@ class Settings(BaseSettings):
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     # Simulation settings
-    DEFAULT_PLAYERS: int = 3
+    DEFAULT_PLAYERS: int = (
+        2  # Reduced: 1 user + 1 opponent (minimax is 2-player)
+    )
     MOVES_PER_PLAYER: int = 2
-    TIME_PERIODS: int = 4
+    TIME_PERIODS: int = 2  # Reduced from 4 to 2 for faster response
     TIME_PERIOD_UNIT: str = "quarter"
 
     # Google Cloud settings

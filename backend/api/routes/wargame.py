@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 import uuid
 
-from api.deps import get_maxn_controller, get_strategy_agent
+from api.deps import get_minimax_controller, get_strategy_agent
 from core.config import settings
 from schemas import WargameRequest, WargameResponse, CompanyProfile
 
@@ -130,26 +130,29 @@ async def run_wargame(request: WargameRequest):
                     + "Please provide action_set in request.",
                 )
 
-        # Create MaxN controller with all player profiles
-        controller = await get_maxn_controller(
+        # Create Minimax controller with all player profiles
+        controller = await get_minimax_controller(
             user_id=request.user_id,
             session_id=session_id,
             business_goal=request.business_goal,
             player_profiles=player_profiles,
         )
 
-        # Run the search
-        best_score, best_move, tree_structure = controller.run_a_period_search(
-            start_state=request.game_state,
-            action_set=action_set,
-            time_period_unit=time_period_unit,
+        # Run the minimax search across all time periods
+        best_score, best_move, tree_structure, actual_time_periods = (
+            controller.run_minimax_search(
+                start_state=request.game_state,
+                action_set=action_set,
+                time_periods=time_periods,
+                time_period_unit=time_period_unit,
+            )
         )
 
         return WargameResponse(
             best_score=best_score,
             best_move=best_move,
             tree_structure=tree_structure,
-            time_periods=time_periods,
+            time_periods=actual_time_periods,  # Use actual (possibly limited) periods
             time_period_unit=time_period_unit,
         )
 

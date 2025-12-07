@@ -1,6 +1,6 @@
 from typing import List
 from core.agent import strategy_agent, opponent_agent, batch_evaluator_agent
-from core.maxn_engine import Agent, MaxNController
+from core.minimax_engine import Agent, MinimaxController
 from schemas import CompanyProfile
 
 
@@ -35,17 +35,18 @@ async def get_batch_evaluator_agent(user_id: str, session_id: str) -> Agent:
     return agent
 
 
-async def get_maxn_controller(
+async def get_minimax_controller(
     user_id: str,
     session_id: str,
     business_goal: str,
     player_profiles: List[CompanyProfile],
-) -> MaxNController:
+) -> MinimaxController:
+    """Get Minimax controller for multi-turn game tree search."""
     # Initialize agents
     evaluator = await get_batch_evaluator_agent(user_id, session_id)
     opponent = await get_opponent_agent(user_id, session_id)
 
-    return MaxNController(
+    return MinimaxController(
         evaluator=evaluator,
         opponent=opponent,
         business_goal=business_goal,

@@ -1,11 +1,11 @@
 from . import agent
 from . import config
 from . import prompt
-from . import maxn_engine
+from . import minimax_engine
 
 __all__ = [
     "agent",
     "config",
     "prompt",
-    "maxn_engine",
+    "minimax_engine",
 ]

@@ -88,10 +88,16 @@ function App() {
                 </div>
 
                 <div className="tree-section">
-                  <h3>Decision Tree Visualization</h3>
+                  <h3>
+                    Minimax Decision Tree ({result.time_periods}{" "}
+                    {result.time_period_unit}
+                    {result.time_periods > 1 ? "s" : ""})
+                  </h3>
                   <DecisionTree
                     treeData={result.tree_structure}
                     bestMove={result.best_move}
+                    timePeriods={result.time_periods}
+                    timePeriodUnit={result.time_period_unit}
                   />
                 </div>
               </div>

@@ -70,6 +70,21 @@
   margin: 14px 0;
 }
 
+.legend-subtitle {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+}
+
+.legend-ring {
+  background: transparent !important;
+  border: 3px solid;
+  border-radius: 50%;
+}
+
 /* Instructions */
 .tree-instructions {
   position: absolute;
@@ -198,6 +213,24 @@
 
 .tooltip-badge.leaf {
   background: #10b981;
+}
+
+.tooltip-badge.max {
+  background: #3b82f6;
+}
+
+.tooltip-badge.min {
+  background: #ef4444;
+}
+
+.tooltip-period {
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
 }
 
 .tooltip-label {
