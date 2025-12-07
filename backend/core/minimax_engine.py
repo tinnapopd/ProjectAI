@@ -254,6 +254,8 @@ Return scores for all scenarios."""
         """
 
         num_opponents = len(self.player_profiles) - 1
+        print(f"[Minimax] Building tree with {num_opponents} opponents, {len(player0_moves)} user moves")
+        print(f"[Minimax] Player profiles: {[p.name for p in self.player_profiles]}")
 
         # Generate all possible game paths
         def generate_paths(
@@ -362,6 +364,17 @@ Return scores for all scenarios."""
 
             else:
                 # MIN turn: Opponent moves (parent selects MIN among these children)
+                
+                # Handle case with no opponents - skip directly to next period
+                if num_opponents == 0:
+                    return build_subtree(
+                        period=period + 1,
+                        is_max_turn=True,
+                        parent_id=parent_id,
+                        path_prefix=path_prefix,
+                        opponent_idx=0,
+                    )
+                
                 worst_score = float("inf")
 
                 opp_moves = opponent_moves_by_period[period][opponent_idx]

@@ -2,22 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import Tree from "react-d3-tree";
 import "./DecisionTree.css";
 
-// Player colors for visual distinction - enhanced for Minimax
+// Player colors for visual distinction - based on who made the move
 const PLAYER_COLORS = {
   root: { bg: "#6366f1", border: "#4f46e5", text: "#fff" },
-  max: { bg: "#3b82f6", border: "#2563eb", text: "#fff", name: "MAX (You)" },
-  min: {
-    bg: "#ef4444",
-    border: "#dc2626",
-    text: "#fff",
-    name: "MIN (Opponent)",
-  },
-  0: { bg: "#3b82f6", border: "#2563eb", text: "#fff", name: "You" },
-  1: { bg: "#f59e0b", border: "#d97706", text: "#fff", name: "Opp 1" },
-  2: { bg: "#ef4444", border: "#dc2626", text: "#fff", name: "Opp 2" },
-  3: { bg: "#8b5cf6", border: "#7c3aed", text: "#fff", name: "Opp 3" },
+  you: { bg: "#3b82f6", border: "#2563eb", text: "#fff", name: "You" },  // Blue for your moves
+  opponent: { bg: "#ef4444", border: "#dc2626", text: "#fff", name: "Opponent" },  // Red for opponent
   leaf: { bg: "#10b981", border: "#059669", text: "#fff" },
-  best: { bg: "#10b981", border: "#047857", text: "#fff" },
+  best: { bg: "#22c55e", border: "#16a34a", text: "#fff" },  // Bright green for best
 };
 
 // Time period colors for visual grouping
@@ -155,7 +146,10 @@ const DecisionTree = ({ treeData, bestMove, timePeriods, timePeriodUnit }) => {
       timePeriod,
     } = nodeDatum.attributes || {};
 
-    // Determine colors based on Minimax node type
+    // Determine colors based on who made the move (playerIndex)
+    // Debug: log playerIndex to see what we're getting
+    console.log('Node:', nodeDatum.name, 'playerIndex:', playerIndex, 'type:', typeof playerIndex);
+    
     let colors;
     if (isBestMove) {
       colors = PLAYER_COLORS.best;
@@ -163,14 +157,12 @@ const DecisionTree = ({ treeData, bestMove, timePeriods, timePeriodUnit }) => {
       colors = PLAYER_COLORS.root;
     } else if (isLeaf) {
       colors = PLAYER_COLORS.leaf;
-    } else if (isMaxNode) {
-      // MAX node - your turn (blue)
-      colors = PLAYER_COLORS.max;
-    } else if (isMinNode) {
-      // MIN node - opponent turn (use opponent color)
-      colors = PLAYER_COLORS[playerIndex] || PLAYER_COLORS.min;
+    } else if (playerIndex === 0 || playerIndex === "0") {
+      // Your move - Blue (explicit check for 0)
+      colors = PLAYER_COLORS.you;
     } else {
-      colors = PLAYER_COLORS[playerIndex] || PLAYER_COLORS[0];
+      // Opponent move - Red (includes playerIndex > 0, null, undefined)
+      colors = PLAYER_COLORS.opponent;
     }
 
     // Get period color for border accent
@@ -281,7 +273,7 @@ const DecisionTree = ({ treeData, bestMove, timePeriods, timePeriodUnit }) => {
             className="legend-box"
             style={{
               background: PLAYER_COLORS.best.bg,
-              boxShadow: "0 0 8px #10b981",
+              boxShadow: "0 0 8px #22c55e",
             }}
           ></span>
           <span>⭐ Best Move</span>
@@ -289,34 +281,21 @@ const DecisionTree = ({ treeData, bestMove, timePeriods, timePeriodUnit }) => {
 
         <div className="legend-divider"></div>
 
-        {/* Minimax node types */}
+        {/* Player colors */}
+        <div className="legend-subtitle">Players</div>
         <div className="legend-item">
           <span
             className="legend-box"
-            style={{ background: PLAYER_COLORS.root.bg }}
+            style={{ background: PLAYER_COLORS.you.bg }}
           ></span>
-          <span>Root</span>
+          <span>🔵 You (Blue)</span>
         </div>
         <div className="legend-item">
           <span
             className="legend-box"
-            style={{ background: PLAYER_COLORS.max.bg }}
+            style={{ background: PLAYER_COLORS.opponent.bg }}
           ></span>
-          <span>▲ MAX (Your Turn)</span>
-        </div>
-        <div className="legend-item">
-          <span
-            className="legend-box"
-            style={{ background: PLAYER_COLORS.min.bg }}
-          ></span>
-          <span>▼ MIN (Opponent)</span>
-        </div>
-        <div className="legend-item">
-          <span
-            className="legend-box"
-            style={{ background: PLAYER_COLORS.leaf.bg }}
-          ></span>
-          <span>Outcomes</span>
+          <span>🔴 Opponent (Red)</span>
         </div>
 
         {/* Time periods legend */}
@@ -374,20 +353,22 @@ const DecisionTree = ({ treeData, bestMove, timePeriods, timePeriodUnit }) => {
             {!tooltip.content.attributes?.isRoot &&
               !tooltip.content.attributes?.isLeaf && (
                 <>
+                  {/* Player badge - who made this move */}
+                  {tooltip.content.attributes?.playerIndex === 0 ? (
+                    <span className="tooltip-badge" style={{ background: PLAYER_COLORS.you.bg }}>
+                      🔵 Your Move
+                    </span>
+                  ) : (
+                    <span className="tooltip-badge" style={{ background: PLAYER_COLORS.opponent.bg }}>
+                      🔴 Opponent Move
+                    </span>
+                  )}
+                  {/* MAX/MIN indicator */}
                   {tooltip.content.attributes?.isMaxNode && (
-                    <span className="tooltip-badge max">▲ MAX (Your Turn)</span>
+                    <span className="tooltip-badge" style={{ background: "#666" }}>▲ MAX</span>
                   )}
                   {tooltip.content.attributes?.isMinNode && (
-                    <span
-                      className="tooltip-badge"
-                      style={{
-                        background:
-                          PLAYER_COLORS[tooltip.content.attributes.playerIndex]
-                            ?.bg || PLAYER_COLORS.min.bg,
-                      }}
-                    >
-                      ▼ MIN (Opponent {tooltip.content.attributes.playerIndex})
-                    </span>
+                    <span className="tooltip-badge" style={{ background: "#666" }}>▼ MIN</span>
                   )}
                 </>
               )}
